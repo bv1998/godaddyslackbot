@@ -3,10 +3,9 @@ from flask import Flask, request
 from slack_sdk import WebClient
 from godaddypy import Client, Account
 import ssl
+from dotenv import load_dotenv
 
 ssl._create_default_https_context = ssl._create_unverified_context
-
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -27,6 +26,7 @@ client = Client(account)
 def godaddy_webhook():
     data = request.json
 
+    # Check if the event is about a domain transfer
     if data['event'] == 'domain_transfer_in':
         domain_name = data['domain_name']
         message = f"Domain transferred in: {domain_name}"
@@ -35,10 +35,17 @@ def godaddy_webhook():
         domain_name = data['domain_name']
         message = f"Domain transferred out: {domain_name}"
 
+    elif data['event'] == 'nameserver_change':
+        domain_name = data['domain_name']
+        old_nameservers = data['old_nameservers']
+        new_nameservers = data['new_nameservers']
+        message = f"Nameservers changed for {domain_name}:\nOld Nameservers: {', '.join(old_nameservers)}\nNew Nameservers: {', '.join(new_nameservers)}"
+
+        # Send the nameserver change notification to Slack
+        slack_client.chat_postMessage(channel=channel_id, text=message)
+
     else:
         message = "Unknown event received from GoDaddy"
-
-    slack_client.chat_postMessage(channel=channel_id, text=message)
 
     return 'OK', 200
 
