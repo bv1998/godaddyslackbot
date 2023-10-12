@@ -50,7 +50,7 @@ def godaddy_webhook():
     return 'OK', 200
 
 if __name__ == '__main__':
-    startup_message = "Flask app for GoDaddy webhook is running."
+    startup_message = "Notifications for Godaddy has started running."
     slack_client.chat_postMessage(channel=channel_id, text=startup_message)
 
     app.run(host='0.0.0.0', port=8000)
